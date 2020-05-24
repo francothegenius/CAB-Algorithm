@@ -1,0 +1,9 @@
+10
+0.01
+0.95
+1000
+Nodo1 1
+Nodo2 2
+Nodo3 3
+Nodo4 4
+Nodo5 5
