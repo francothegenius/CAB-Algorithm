@@ -1,2 +1,4 @@
 Camino: Nodo2 -> Nodo1 -> Nodo5 -> Nodo4 -> Nodo3
 Distancia Final: 5
+Camino: Nodo1 -> Nodo5 -> Nodo4 -> Nodo3 -> Nodo2
+Distancia Final: 5

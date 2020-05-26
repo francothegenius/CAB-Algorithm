@@ -1,28 +1,24 @@
 package ProyectoCAB;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
-
-
 public class CAB  {
-	protected ArrayList<Nodo> solucion;
+	protected ArrayList<Nodo> grafo;
 	protected int solucionFinal;
 	protected float tMin, fD;
-	protected int tMax, cont;
+	protected int tMax, cont, n,cont2;
 	protected ArrayList<Nodo> arrNodo;
-
+	protected String[] arrAux;
+	protected int[][] adjlista;
 	public static double probabilidad(double deltaE, double temperatura) {
 		return Math.exp(-(deltaE) /temperatura);
 	}
@@ -33,25 +29,47 @@ public class CAB  {
 		return r.nextInt(1000) / 1000.0;
 	}
 	
+	
+ void llenarGrafo(String ID1, String ID2) {
+		adjlista[Integer.parseInt(ID1)-1][Integer.parseInt(ID2)-1]=1;
+		adjlista[Integer.parseInt(ID2)-1][Integer.parseInt(ID1)-1]=1;
+	}
+	
+	public void llenarControlador(){
+		ControladorNodos c=new ControladorNodos(adjlista);
+		for (int i = 0; i < adjlista.length; i++) {
+			Nodo nodo=new Nodo(String.valueOf(i));
+			c.addNodo(nodo);
+		}
+	}
+	
+	public boolean busqueda(String []arrAux,String id) {
+		for(int x=0;x<arrAux.length;x++) {
+			if(arrAux[x]==id) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public void lecturaArchivo(String archivo) throws IOException, FileNotFoundException {
 		try {
 			BufferedReader lectura = new BufferedReader(new FileReader(archivo));
 			String linea= lectura.readLine();
-			tMax=Integer.parseInt(linea);
+			linea= lectura.readLine();
+			n=Integer.parseInt(linea.substring(0, linea.indexOf(" ")));
+			arrAux=new String[n];
+			adjlista=new int[n][n];
+			grafo=new ArrayList<Nodo>();
 			linea=lectura.readLine();
-			tMin=Float.parseFloat(linea);
-			linea =lectura.readLine();
-			fD = Float.parseFloat(linea);
-			linea =lectura.readLine();
-			cont=Integer.parseInt(linea);
-			arrNodo = new ArrayList<Nodo>();
 			StringTokenizer st;
 			while((linea=lectura.readLine())!=null) {
 				st=new StringTokenizer(linea);
-				String nombreNodo = st.nextToken();
-				int valorNodo = Integer.parseInt(st.nextToken());
-				arrNodo.add(new Nodo(nombreNodo, valorNodo));
-			}	
+				String ID1 = st.nextToken();
+				String ID2 = st.nextToken();
+				llenarGrafo(ID1,ID2);
+			}
+			llenarControlador();
 			
 		} catch (FileNotFoundException e) {
 			System.out.println("No se encontro el archivo");
@@ -59,43 +77,32 @@ public class CAB  {
 			System.out.println("Hubo un problema de IO");
 		}
 	}
-	
+
 	
 	public static void main(String[] args) throws IOException, FileNotFoundException {
 		CAB cab = new CAB();
 		Scanner scanner = new Scanner(System.in);
 		String entrada = scanner.next();
-		cab.lecturaArchivo(entrada+".txt");
-		/*
-		ControladorNodos.addNodo(new Nodo("Nodo1", 1));
-		ControladorNodos.addNodo(new Nodo("Nodo2", 2));
-		ControladorNodos.addNodo(new Nodo("Nodo3", 3));
-		ControladorNodos.addNodo(new Nodo("Nodo4", 4));
-		ControladorNodos.addNodo(new Nodo("Nodo5", 5));
-		ControladorNodos.addNodo(new Nodo("Nodo6", 6));
-		*/
-		
-		for(Nodo n: cab.arrNodo) {
-			ControladorNodos.addNodo(n);
-		}
-	
-		
-		double temperaturaMaxima=cab.tMax;
-		double temperaturaMinima=cab.tMin;
-		double factorDeclibe=cab.fD;
+		String com[]=entrada.split("/");
+		cab.lecturaArchivo(com[0]+".rnd");
 		
 		
+		double temperaturaMaxima=Double.parseDouble(com[1]);
+		double temperaturaMinima=Double.parseDouble(com[2]);
+		double factorDeclibe=Double.parseDouble(com[3]);
+		
+		Stopwatch timer = new Stopwatch();
 		//Generar una permutaciï¿½n aleatoria
 		Camino camino= new Camino();
-		camino.generateIndividual();
+		camino.generarPermutacion();
 		
 		while (temperaturaMaxima>temperaturaMinima) {
-			int contador=cab.cont;
+			int contador=Integer.parseInt(com[4]);
 			while (contador>0) {
 				Camino nuevoCamino=new Camino();
-				nuevoCamino.generateIndividual();
-				double distanciaCamino=camino.getTotaldistancia();
-				double distancianNuevoCamino=nuevoCamino.getTotaldistancia();
+				nuevoCamino.generarPermutacion();
+				double distanciaCamino=camino.getCosto();
+				double distancianNuevoCamino=nuevoCamino.getCosto();
 				double deltaE=distancianNuevoCamino-distanciaCamino;
 				if (deltaE<=0) {
 					camino=nuevoCamino;
@@ -109,14 +116,15 @@ public class CAB  {
 			}
 			temperaturaMaxima*=factorDeclibe;
 		}
-		
-        System.out.println("Distancia Final: " + camino.getTotaldistancia());
-        System.out.println("Camino: " + camino);
+        System.out.println("Mejor Solución: " + camino);
+        System.out.println("Costo: " + camino.getCosto());
+        System.out.println("tiempo:"+timer.elapsedTime());
         
-        PrintWriter pw= new PrintWriter(new FileWriter(entrada+"r.txt", true));
+        PrintWriter pw= new PrintWriter(new FileWriter(com[0]+"r.txt", true));
 		
-		pw.println("Camino: " + camino);
-		pw.println("Distancia Final: " + camino.getTotaldistancia());
+        pw.println("Mejor Solución: "+ camino);
+		pw.println("Costo: " + camino.getCosto());
+		pw.println("tiempo:"+timer.elapsedTime());
 		pw.close();
 	}
 }
