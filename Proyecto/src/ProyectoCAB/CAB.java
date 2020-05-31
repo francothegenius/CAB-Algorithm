@@ -82,49 +82,94 @@ public class CAB  {
 	public static void main(String[] args) throws IOException, FileNotFoundException {
 		CAB cab = new CAB();
 		Scanner scanner = new Scanner(System.in);
-		String entrada = scanner.next();
-		String com[]=entrada.split("/");
-		cab.lecturaArchivo(com[0]+".rnd");
+		//String entrada = scanner.next();
+		//String com[]=entrada.split("/");
+		cab.lecturaArchivo(args[0]);
 		
 		
-		double temperaturaMaxima=Double.parseDouble(com[1]);
-		double temperaturaMinima=Double.parseDouble(com[2]);
-		double factorDeclibe=Double.parseDouble(com[3]);
+		double temperaturaMaxima=Double.parseDouble(args[1]);
+		double temperaturaMinima=Double.parseDouble(args[2]);
+		double factorDeclibe=Double.parseDouble(args[3]);
 		
 		Stopwatch timer = new Stopwatch();
-		//Generar una permutaci�n aleatoria
-		Camino camino= new Camino();
-		camino.generarPermutacion();
+		//Generar una permutaciï¿½n aleatoria
+		/*Solucion Solucion= new Solucion();
+		Solucion.generarPermutacion();
 		
 		while (temperaturaMaxima>temperaturaMinima) {
-			int contador=Integer.parseInt(com[4]);
+			int contador=Integer.parseInt(args[4]);
 			while (contador>0) {
-				Camino nuevoCamino=new Camino();
-				nuevoCamino.generarPermutacion();
-				double distanciaCamino=camino.getCosto();
-				double distancianNuevoCamino=nuevoCamino.getCosto();
-				double deltaE=distancianNuevoCamino-distanciaCamino;
+				Solucion nuevoSolucion=new Solucion();
+				nuevoSolucion.generarPermutacion();
+				double distanciaSolucion=Solucion.getCosto();
+				double distancianNuevoSolucion=nuevoSolucion.getCosto();
+				double deltaE=distancianNuevoSolucion-distanciaSolucion;
 				if (deltaE<=0) {
-					camino=nuevoCamino;
+					Solucion=nuevoSolucion;
 				} else {
 					double random=randomDouble();
 					if (probabilidad(deltaE, temperaturaMaxima)>random) {
-						camino=nuevoCamino;
+						Solucion=nuevoSolucion;
 					}
 				}
 				contador--;
 			}
 			temperaturaMaxima*=factorDeclibe;
 		}
-        System.out.println("Mejor Soluci�n: " + camino);
-        System.out.println("Costo: " + camino.getCosto());
+        System.out.println("Mejor Solución: " + Solucion);
+        System.out.println("Costo: " + Solucion.getCosto());
+        System.out.println("tiempo:"+timer.elapsedTime());*/
+		Solucion s= new Solucion(), 
+				bestSolution = new Solucion();
+		s.generarPermutacion();
+		// agregar metodo para copiar Solucion en bestSolution
+		bestSolution.copiarSolucion(s.permutacion);
+		int newCost, currentCost = s.getCosto(),
+			bestCost = currentCost,
+			oldCost=0;
+
+		while (temperaturaMaxima>temperaturaMinima) {
+			int contador=Integer.parseInt(args[4]);
+			while (contador>0) {
+				// Generar un vecino de Solucion
+				// generan aleatoriamente dos enteros u,v en [0..n] y u diferente de v
+				Random ran=new Random();
+				int u= ran.nextInt(ControladorNodos.nodos.size()+1),
+					v=ran.nextInt(ControladorNodos.nodos.size()+1);
+				// Intentar un movimiento
+				oldCost = currentCost;
+				s.swap(u,v);
+				newCost = s.getCosto();
+				double deltaE = currentCost - newCost;
+				if (deltaE<=0) {  // Acepta el movimiento
+					if (newCost > bestCost) { 
+						// copiar en bestSolution el Solucion con metodo creado en clase Solucion
+						bestSolution.copiarSolucion(s.permutacion);
+						currentCost = newCost;	
+					} 
+				} else {   
+					double random=randomDouble();
+					if (!(random < Math.exp(-(deltaE) / temperaturaMaxima))){   // Rechaza el movimiento
+						s.swap(u,v);     // UNDO del movimiento
+						currentCost = oldCost; // Regreso al costo anterior
+					}
+					else { // Acepto un movimiento que empeora por la probabilidad
+						currentCost = newCost;
+					} 
+				}
+				contador--;
+			}
+			temperaturaMaxima *= factorDeclibe;    //0.95
+		}
+        System.out.println("Mejor Soluci�n: " + bestSolution);
+        System.out.println("Costo: " + bestSolution.getCosto());
         System.out.println("tiempo:"+timer.elapsedTime());
         
-        PrintWriter pw= new PrintWriter(new FileWriter(com[0]+"r.txt", true));
+        PrintWriter pw= new PrintWriter(new FileWriter(args[0]+"r.txt", true));
 		
-        pw.println("Mejor Soluci�n: "+ camino);
-		pw.println("Costo: " + camino.getCosto());
-		pw.println("tiempo:"+timer.elapsedTime());
+        pw.println("Mejor Soluci�n: "+ bestSolution);
+   		pw.println("Costo: " + bestSolution.getCosto());
+   		pw.println("tiempo:"+timer.elapsedTime());
 		pw.close();
 	}
 }
