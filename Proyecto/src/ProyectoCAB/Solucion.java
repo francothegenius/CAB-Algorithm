@@ -24,13 +24,14 @@ public class Solucion {
     public int getCosto(){
     	if (solucion == 0) {
             int min=0, cab=0;
-            // Loop through our tour's cities
             for (int x=0; x < permutacion.size(); x++) {
-                // Get the distancia between the two cities
-                for (int i = 0; i < permutacion.size(); i++) {
+                for (int i = x+1; i < permutacion.size(); i++) {
                     if (ControladorNodos.adjlista[x][i]==1) {
                     	cab= (int) minimo(permutacion.get(x), permutacion.get(i));
-    				}
+                    	if (cab > min) { 
+                            min = cab;
+                        }
+                    }
 				}
             }
             solucion=min;
@@ -38,12 +39,7 @@ public class Solucion {
         return solucion;
     }
     
-    public void swap(int nodo1, int nodo2) {
-        int tmp = permutacion.get(nodo1);
-        permutacion.set(nodo1, permutacion.get(nodo2));
-        permutacion.set(nodo2, tmp);
-    }
- 
+  
     
     public double minimo(int n1,int n2) {
     	double f=Math.abs(n2-n1);

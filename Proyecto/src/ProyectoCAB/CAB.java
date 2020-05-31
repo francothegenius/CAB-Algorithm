@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.StringTokenizer;
@@ -82,43 +83,16 @@ public class CAB  {
 	public static void main(String[] args) throws IOException, FileNotFoundException {
 		CAB cab = new CAB();
 		Scanner scanner = new Scanner(System.in);
-		//String entrada = scanner.next();
-		//String com[]=entrada.split("/");
-		cab.lecturaArchivo(args[0]);
+		String entrada = scanner.next();
+		String com[]=entrada.split("/");
+		cab.lecturaArchivo(com[0]);
 		
 		
-		double temperaturaMaxima=Double.parseDouble(args[1]);
-		double temperaturaMinima=Double.parseDouble(args[2]);
-		double factorDeclibe=Double.parseDouble(args[3]);
+		double temperaturaMaxima=Double.parseDouble(com[1]);
+		double temperaturaMinima=Double.parseDouble(com[2]);
+		double factorDeclibe=Double.parseDouble(com[3]);
 		
 		Stopwatch timer = new Stopwatch();
-		//Generar una permutaciï¿½n aleatoria
-		/*Solucion Solucion= new Solucion();
-		Solucion.generarPermutacion();
-		
-		while (temperaturaMaxima>temperaturaMinima) {
-			int contador=Integer.parseInt(args[4]);
-			while (contador>0) {
-				Solucion nuevoSolucion=new Solucion();
-				nuevoSolucion.generarPermutacion();
-				double distanciaSolucion=Solucion.getCosto();
-				double distancianNuevoSolucion=nuevoSolucion.getCosto();
-				double deltaE=distancianNuevoSolucion-distanciaSolucion;
-				if (deltaE<=0) {
-					Solucion=nuevoSolucion;
-				} else {
-					double random=randomDouble();
-					if (probabilidad(deltaE, temperaturaMaxima)>random) {
-						Solucion=nuevoSolucion;
-					}
-				}
-				contador--;
-			}
-			temperaturaMaxima*=factorDeclibe;
-		}
-        System.out.println("Mejor Solución: " + Solucion);
-        System.out.println("Costo: " + Solucion.getCosto());
-        System.out.println("tiempo:"+timer.elapsedTime());*/
 		Solucion s= new Solucion(), 
 				bestSolution = new Solucion();
 		s.generarPermutacion();
@@ -129,16 +103,16 @@ public class CAB  {
 			oldCost=0;
 
 		while (temperaturaMaxima>temperaturaMinima) {
-			int contador=Integer.parseInt(args[4]);
+			int contador=Integer.parseInt(com[4]);
 			while (contador>0) {
 				// Generar un vecino de Solucion
 				// generan aleatoriamente dos enteros u,v en [0..n] y u diferente de v
 				Random ran=new Random();
-				int u= ran.nextInt(ControladorNodos.nodos.size()+1),
-					v=ran.nextInt(ControladorNodos.nodos.size()+1);
+				int u= ran.nextInt(ControladorNodos.nodos.size()),
+					v=ran.nextInt(ControladorNodos.nodos.size());
 				// Intentar un movimiento
 				oldCost = currentCost;
-				s.swap(u,v);
+				Collections.swap(s.permutacion, u, v);
 				newCost = s.getCosto();
 				double deltaE = currentCost - newCost;
 				if (deltaE<=0) {  // Acepta el movimiento
@@ -150,7 +124,7 @@ public class CAB  {
 				} else {   
 					double random=randomDouble();
 					if (!(random < Math.exp(-(deltaE) / temperaturaMaxima))){   // Rechaza el movimiento
-						s.swap(u,v);     // UNDO del movimiento
+						Collections.swap(s.permutacion, u, v);     // UNDO del movimiento
 						currentCost = oldCost; // Regreso al costo anterior
 					}
 					else { // Acepto un movimiento que empeora por la probabilidad
@@ -161,11 +135,11 @@ public class CAB  {
 			}
 			temperaturaMaxima *= factorDeclibe;    //0.95
 		}
-        System.out.println("Mejor Soluci�n: " + bestSolution);
+        System.out.println("Mejor Solucion: " + bestSolution);
         System.out.println("Costo: " + bestSolution.getCosto());
         System.out.println("tiempo:"+timer.elapsedTime());
         
-        PrintWriter pw= new PrintWriter(new FileWriter(args[0]+"r.txt", true));
+        PrintWriter pw= new PrintWriter(new FileWriter(com[0]+"r.txt", true));
 		
         pw.println("Mejor Soluci�n: "+ bestSolution);
    		pw.println("Costo: " + bestSolution.getCosto());
